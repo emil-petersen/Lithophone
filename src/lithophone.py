@@ -2,23 +2,33 @@
 import sqlite3
 import json
 
+from functools import lru_cache
 
-db = sqlite3.connect(':memory:', check_same_thread=False)
-db.execute("""CREATE TABLE IF NOT EXISTS webhook_messages (
-                target, message)""")
-db.commit()
+
+@lru_cache(maxsize=1)
+def get_db_connection(db_file):
+    db = sqlite3.connect(db_file, check_same_thread=False)
+    db.execute("""CREATE TABLE IF NOT EXISTS webhook_messages (
+                    target, message)""")
+    db.commit()
+    return db
 
 
 def app(env, start_response):
+
+
     target = env['PATH_INFO'][1:]
     if not target:
         start_response('404 NOT FOUND', [])
         return []
 
+    # This is cached so it only actually runs once even if the script is long lived.
+    db_file = env.get('CACHE_FILE', "/tmp/lithophone.db")
+    db = get_db_connection(db_file)
+
     cursor = db.cursor()
 
     if env['REQUEST_METHOD'] == 'POST':
-        cursor = db.cursor()
 
         cursor.execute(
             'INSERT INTO webhook_messages VALUES (?, ?)', (target,
