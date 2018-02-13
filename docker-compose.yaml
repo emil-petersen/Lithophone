@@ -1,0 +1,13 @@
+---
+version: "3"
+services:
+    lithophone:
+        build:
+            context: .
+            dockerfile: build/docker/Dockerfile
+        image: lithophone
+        environment:
+          WORKERS: 10
+          CACHE_FILE: /tmp/lithophone.db
+        ports:
+          - 8080:8000
