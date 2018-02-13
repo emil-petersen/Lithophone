@@ -37,7 +37,8 @@ def app(env, start_response):
         db.commit()
         cursor.close()
 
-        start_response('200 OK', [])
+        start_response('200 OK',
+            [('Content-Type', 'application/text')])
         return []
 
 
